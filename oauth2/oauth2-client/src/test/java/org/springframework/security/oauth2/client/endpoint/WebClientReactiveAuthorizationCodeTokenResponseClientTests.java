@@ -32,11 +32,13 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenRespon
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExchange;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Rob Winch
@@ -258,5 +260,22 @@ public class WebClientReactiveAuthorizationCodeTokenResponseClientTests {
 		return new MockResponse()
 			.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
 			.setBody(json);
+	}
+
+	@Test
+	public void setWebClientNullThenIllegalArgumentException(){
+		tokenResponseClient.setWebClient(null);
+	}
+
+	@Test
+	public void setCustomWebClientThenCustomWebClientIsUsed() {
+		WebClient customClient = mock(WebClient.class);
+		tokenResponseClient.setWebClient(customClient);
+		try {
+			OAuth2AccessTokenResponse response = this.tokenResponseClient.getTokenResponse(authorizationCodeGrantRequest()).block();
+		} catch(Exception e) {
+			// Do Nothing!
+		}
+		verify(customClient, atLeastOnce()).post();
 	}
 }

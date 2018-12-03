@@ -48,6 +48,14 @@ public class WebClientReactiveAuthorizationCodeTokenResponseClient implements Re
 	private WebClient webClient = WebClient.builder()
 			.build();
 
+	/**
+	 * @param webClient the webClient to set
+	 */
+	public void setWebClient(WebClient webClient) {
+		this.webClient = webClient;
+	}
+
+	
 	@Override
 	public Mono<OAuth2AccessTokenResponse> getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationGrantRequest) {
 		return Mono.defer(() -> {

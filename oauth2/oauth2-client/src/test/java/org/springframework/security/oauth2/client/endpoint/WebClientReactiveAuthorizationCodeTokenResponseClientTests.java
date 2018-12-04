@@ -262,7 +262,7 @@ public class WebClientReactiveAuthorizationCodeTokenResponseClientTests {
 			.setBody(json);
 	}
 
-	@Test
+	@Test(expected=IllegalArgumentException.class)
 	public void setWebClientNullThenIllegalArgumentException(){
 		tokenResponseClient.setWebClient(null);
 	}
@@ -270,12 +270,22 @@ public class WebClientReactiveAuthorizationCodeTokenResponseClientTests {
 	@Test
 	public void setCustomWebClientThenCustomWebClientIsUsed() {
 		WebClient customClient = mock(WebClient.class);
+		when(customClient.post()).thenReturn(WebClient.builder().build().post());
+
 		tokenResponseClient.setWebClient(customClient);
-		try {
-			OAuth2AccessTokenResponse response = this.tokenResponseClient.getTokenResponse(authorizationCodeGrantRequest()).block();
-		} catch(Exception e) {
-			// Do Nothing!
-		}
+
+		String accessTokenSuccessResponse = "{\n" +
+				"	\"access_token\": \"access-token-1234\",\n" +
+				"   \"token_type\": \"bearer\",\n" +
+				"   \"expires_in\": \"3600\",\n" +
+				"   \"scope\": \"openid profile\"\n" +
+				"}\n";
+		this.server.enqueue(jsonResponse(accessTokenSuccessResponse));
+
+		this.clientRegistration.scope("openid", "profile", "email", "address");
+
+		OAuth2AccessTokenResponse response = this.tokenResponseClient.getTokenResponse(authorizationCodeGrantRequest()).block();
+
 		verify(customClient, atLeastOnce()).post();
 	}
 }

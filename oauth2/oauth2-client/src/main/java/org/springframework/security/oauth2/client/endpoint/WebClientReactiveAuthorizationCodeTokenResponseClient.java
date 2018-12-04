@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExch
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.security.oauth2.core.web.reactive.function.OAuth2BodyExtractors.oauth2AccessTokenResponse;
@@ -52,17 +53,23 @@ public class WebClientReactiveAuthorizationCodeTokenResponseClient implements Re
 	 * @param webClient the webClient to set
 	 */
 	public void setWebClient(WebClient webClient) {
+		Assert.notNull(webClient, "webClient cannot be null");
 		this.webClient = webClient;
 	}
 
 	@Override
 	public Mono<OAuth2AccessTokenResponse> getTokenResponse(OAuth2AuthorizationCodeGrantRequest authorizationGrantRequest) {
 		return Mono.defer(() -> {
-			ClientRegistration clientRegistration = authorizationGrantRequest.getClientRegistration();
 
+			System.out.println("Function starts! webclient = " + this.webClient);
+			ClientRegistration clientRegistration = authorizationGrantRequest.getClientRegistration();
+			System.out.println("Extracted : clientRegistration" + clientRegistration);
 			OAuth2AuthorizationExchange authorizationExchange = authorizationGrantRequest.getAuthorizationExchange();
+			System.out.println("Exreacted : authorizationExchange" + authorizationExchange);
 			String tokenUri = clientRegistration.getProviderDetails().getTokenUri();
+			System.out.println("Extracted : tokenUri = " + tokenUri);
 			BodyInserters.FormInserter<String> body = body(authorizationExchange);
+			System.out.println("Extracted : body = " + body);
 
 			return this.webClient.post()
 					.uri(tokenUri)
@@ -72,6 +79,7 @@ public class WebClientReactiveAuthorizationCodeTokenResponseClient implements Re
 					.exchange()
 					.flatMap(response -> response.body(oauth2AccessTokenResponse()))
 					.map(response -> {
+						System.out.println("It comes here with webclient = " + this.webClient);
 						if (response.getAccessToken().getScopes().isEmpty()) {
 							response = OAuth2AccessTokenResponse.withResponse(response)
 								.scopes(authorizationExchange.getAuthorizationRequest().getScopes())
